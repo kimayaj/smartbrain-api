@@ -1,8 +1,12 @@
+const logger = require('heroku-logger');
+
 const handleSignin = (req, res, db, bcrypt) => {
 	const { email, password } = req.body;
 	if (!email || !password) {
 		return res.status(400).json('incorrect form submission');
 	}
+	logger.log(email, password);
+
 	db.select('email', 'hash').from('login')
 		.where('email', '=', email)
 		.then(data => {
@@ -13,12 +17,18 @@ const handleSignin = (req, res, db, bcrypt) => {
 					.then(user => {
 						res.json(user[0])
 					})
-					.catch(err => res.status(400).json('unable to get user'))
+					.catch((err) => {
+						logger.error(err);
+						res.status(400).json('unable to get user');
+					});
 			} else {
 				res.status(400).json('wrong credentials')
 			}
 		})
-		.catch(err => res.status(400).json('wrong credentials'))
+		.catch((err) => {
+			logger.error(err);
+			res.status(400).json('wrong credentials');
+		})
 }
 
 module.exports = {
